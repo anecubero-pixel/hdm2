@@ -41,8 +41,8 @@ header span { font-size:12px; color:#B5D4F4; }
 #searchInput:focus, #searchInputAV2:focus { border-color:#1d4ed8; }
 #searchInput::placeholder, #searchInputAV2::placeholder { color:#9ca3af; }
 #searchInput:disabled, #searchInputAV2:disabled { background:#f9fafb; color:#9ca3af; }
-#suggestions { position:absolute; top:calc(100% + 4px); left:0; right:0; background:#fff; border:1px solid #e0e4ef; border-radius:8px; max-height:300px; overflow-y:auto; z-index:200; display:none; box-shadow:0 8px 24px rgba(0,0,0,.1); }
-#suggestions.open { display:block; }
+#suggestions, #suggestionsAV2, #suggestionsT150V, #suggestionsBOX150, #suggestionsB600, #suggestionsPMM, #suggestionsROPAL, #suggestionsAV4, #suggestionsT150M, #suggestionsT150MT { position:absolute; top:calc(100% + 4px); left:0; right:0; background:#fff; border:1px solid #e0e4ef; border-radius:8px; max-height:300px; overflow-y:auto; z-index:200; display:none; box-shadow:0 8px 24px rgba(0,0,0,.1); }
+#suggestions.open, #suggestionsAV2.open, #suggestionsT150V.open, #suggestionsBOX150.open, #suggestionsB600.open, #suggestionsPMM.open, #suggestionsROPAL.open, #suggestionsAV4.open, #suggestionsT150M.open, #suggestionsT150MT.open { display:block; }
 .sug-item { padding:10px 16px; cursor:pointer; border-bottom:1px solid #f3f4f6; display:flex; align-items:center; gap:12px; transition:background .1s; }
 .sug-item:hover,.sug-item.active { background:#f0f4ff; }
 .sug-code { font-family:monospace; font-size:12px; color:#1d4ed8; min-width:80px; }
@@ -2739,10 +2739,19 @@ function initSearchGenerico(nombre, db, inputId, suggestionsId, contentId, selec
   var input = document.getElementById(inputId);
   if (!input) return;
   input.disabled = false;
-  input.placeholder = 'Buscar en ' + nombre + ' (' + db.length + ' productos)...';
+  input.placeholder = 'Codigo JDE o descripcion del producto...';
   input.addEventListener('input', function() { showSuggestionsGenerico(this.value, db, suggestionsId, selectFn); });
   input.addEventListener('focus', function() { if (this.value) showSuggestionsGenerico(this.value, db, suggestionsId, selectFn); });
-  document.getElementById(contentId).innerHTML = '<div style="color:#9ca3af;text-align:center;padding:40px">Busca un producto para ver su hoja de montaje</div>';
+  input.addEventListener('keydown', function(e) {
+    var box = document.getElementById(suggestionsId);
+    var items = box ? box.querySelectorAll('.sug-item') : [];
+    if (e.key === 'Escape') { box && box.classList.remove('open'); }
+  });
+  document.addEventListener('click', function(e) {
+    var box = document.getElementById(suggestionsId);
+    if (box && !e.target.closest('.dropdown-wrap')) box.classList.remove('open');
+  });
+  document.getElementById(contentId).innerHTML = '<div class="empty-state"><div class="empty-icon">&#128269;</div><p>Busca un producto por <strong>codigo JDE</strong> o <strong>nombre</strong>.<br>Se generara la Hoja de Formato automaticamente.</p></div>';
 }
 
 var _pendingSelectFn = null;
@@ -2750,47 +2759,49 @@ var _pendingMatches = [];
 
 function showSuggestionsGenerico(query, db, suggestionsId, selectFn) {
   var box = document.getElementById(suggestionsId);
-  if (!query || query.length < 1) { box.innerHTML = ''; box.style.display = 'none'; return; }
+  if (!box) return;
+  if (!query || query.length < 1) { box.innerHTML = ''; box.classList.remove('open'); return; }
   var q = query.toLowerCase();
 
-  // Filtrar y quedarse solo con la versión más alta por referencia
   var allMatches = db.filter(function(p) {
     return (String(p['PT/PR/PV']||'')).toLowerCase().includes(q) ||
            (String(p['Descripcion PT/PR/PV']||p['Descripción PT/PR/PV']||'')).toLowerCase().includes(q);
   });
 
-  // Deduplicar por PT/PR/PV manteniendo la versión más alta
   var seen = {};
-  var matches = [];
   allMatches.forEach(function(p) {
     var ref = String(p['PT/PR/PV']||'');
     var ver = parseInt(p['VERSION']||'0') || 0;
-    if (!seen[ref] || ver > seen[ref].ver) {
-      seen[ref] = { p: p, ver: ver };
-    }
+    if (!seen[ref] || ver > seen[ref].ver) seen[ref] = {p:p, ver:ver};
   });
-  Object.keys(seen).forEach(function(ref) { matches.push(seen[ref].p); });
-  matches = matches.slice(0, 20);
-
-  if (!matches.length) { box.innerHTML = '<div style="padding:10px;color:#9ca3af;font-size:13px">Sin resultados</div>'; box.style.display = 'block'; return; }
+  var matches = Object.keys(seen).map(function(r){ return seen[r].p; }).slice(0, 15);
 
   _pendingMatches = matches;
   _pendingSelectFn = selectFn;
 
-  box.innerHTML = matches.map(function(p, i) {
-    var ref = p['PT/PR/PV']||'';
-    var desc = p['Descripcion PT/PR/PV']||p['Descripción PT/PR/PV']||'';
-    var ver = p['VERSION'] ? ' <span style="color:#9ca3af;font-size:10px">v'+p['VERSION']+'</span>' : '';
-    return '<div class="suggestion-item" data-idx="' + i + '" onclick="selectSuggestionGenerico(' + i + ')">'
-      + '<span style="font-weight:600">' + ref + '</span>' + ver + ' <span style="color:#6b7280;font-size:12px">' + desc + '</span></div>';
-  }).join('');
-  box.style.display = 'block';
+  box.innerHTML = matches.length
+    ? matches.map(function(p, i) {
+        var hasDat = hasData(p);
+        return '<div class="sug-item" data-idx="' + i + '">'
+          + '<span class="sug-code">' + p['PT/PR/PV'] + '</span>'
+          + '<span class="sug-name">' + (p['Descripcion PT/PR/PV']||p['Descripción PT/PR/PV']||'') + '</span>'
+          + '<span class="sug-badge ' + (hasDat?'badge-ok':'badge-pend') + '">' + (hasDat?'COMPLETO':'PENDIENTE') + '</span>'
+          + '</div>';
+      }).join('')
+    : '<div class="sug-item"><span class="sug-name" style="color:#9ca3af">Sin resultados</span></div>';
+
+  box.classList.add('open');
+
+  box.querySelectorAll('.sug-item').forEach(function(el, i) {
+    el.addEventListener('mousedown', function(e) {
+      e.preventDefault();
+      if (_pendingSelectFn && _pendingMatches[i]) _pendingSelectFn(_pendingMatches[i]);
+    });
+  });
 }
 
 function selectSuggestionGenerico(idx) {
-  if (_pendingSelectFn && _pendingMatches[idx]) {
-    _pendingSelectFn(_pendingMatches[idx]);
-  }
+  if (_pendingSelectFn && _pendingMatches[idx]) _pendingSelectFn(_pendingMatches[idx]);
 }
 
 function selectProductT150V(p) {
