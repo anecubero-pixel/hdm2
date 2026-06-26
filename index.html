@@ -50,7 +50,7 @@ header span { font-size:12px; color:#B5D4F4; }
 .sug-badge { font-size:10px; padding:2px 8px; border-radius:20px; font-weight:600; }
 .badge-ok { background:#dcfce7; color:#15803d; }
 .badge-pend { background:#fef3c7; color:#b45309; }
-#content, #contentAV2 { max-width:900px; margin:0 auto; padding:0 24px 60px; }
+#content, #contentAV2, #contentT150V, #contentBOX150, #contentB600, #contentPMM, #contentROPAL, #contentAV4, #contentT150M, #contentT150MT { max-width:900px; margin:0 auto; padding:0 24px 60px; }
 .empty-state { text-align:center; padding:70px 24px; color:#9ca3af; }
 .empty-icon { font-size:40px; margin-bottom:14px; }
 .empty-state p { font-size:14px; line-height:1.8; }
@@ -724,7 +724,7 @@ header span { font-size:12px; color:#B5D4F4; }
   <div class="search-panel">
     <div class="search-label">Buscar producto T150V</div>
     <div class="dropdown-wrap">
-      <input type="text" id="searchInputT150V" placeholder="Cargando base de datos T150V..." autocomplete="off" disabled style="width:100%">
+      <input type="text" id="searchInputT150V" placeholder="Cargando base de datos T150V..." autocomplete="off" disabled>
       <div id="suggestionsT150V"></div>
     </div>
   </div>
@@ -2858,10 +2858,8 @@ function renderProductGenerico(p, contentId, maquina) {
     'AJUSTE INYECTOR': {name:'VOLANTES', cls:'alt'},
     'ALTURA DEL PLATO (BASE-ZONA SUP PLATO)': {name:'ALTURAS', cls:'alt'},
     '2- PRESIÓN AIRE MÁQUINA': {name:'MANOMETROS', cls:'man'},
-    // BOX150 / otras
     'CADUCIDAD ESTUCHE': {name:'FORMATO', cls:'fmt'},
     'ALTURA MÁQUINA': {name:'ALTURAS', cls:'alt'},
-    'VELOCIDAD': {name:'RECETA HMI', cls:'hmi'},
     'PRESION AIRE MÁQUINA': {name:'MANOMETROS', cls:'man'},
     'PRESION AIRE MÁQUINA (BAR)': {name:'MANOMETROS', cls:'man'},
   };
