@@ -1330,12 +1330,12 @@ async function downloadExcel() {
   var THIN={style:'thin',color:{argb:'FFBFBFBF'}};
   var BRD={top:THIN,bottom:THIN,left:THIN,right:THIN};
   var fills={oHdr:{type:'pattern',pattern:'solid',fgColor:{argb:'FFF7CAAC'}},oCell:{type:'pattern',pattern:'solid',fgColor:{argb:'FFFBE4D5'}},gHdr:{type:'pattern',pattern:'solid',fgColor:{argb:'FFA8D08D'}},gCell:{type:'pattern',pattern:'solid',fgColor:{argb:'FFE2EFD9'}},grey:{type:'pattern',pattern:'solid',fgColor:{argb:'FFD9D9D9'}},yell:{type:'pattern',pattern:'solid',fgColor:{argb:'FFFFFF00'}}};
-  function W(col,row,value,opts){opts=opts||{};var cell=ws.getCell(row,col);cell.value=(value===''||value===null||value===undefined)?'':value;cell.font={name:'Calibri',size:opts.sz||11,bold:!!opts.bold,color:{argb:opts.color?('FF'+opts.color):'FF000000'}};cell.alignment={horizontal:opts.h||'left',vertical:'middle',wrapText:!!opts.wrap};if(opts.fill)cell.fill=opts.fill;if(opts.border!==false)cell.border=BRD;}
+  var W=function(col,row,value,opts){opts=opts||{};var cell=ws.getCell(row,col);cell.value=(value===''||value===null||value===undefined)?'':value;cell.font={name:'Calibri',size:opts.sz||11,bold:!!opts.bold,color:{argb:opts.color?('FF'+opts.color):'FF000000'}};cell.alignment={horizontal:opts.h||'left',vertical:'middle',wrapText:!!opts.wrap};if(opts.fill)cell.fill=opts.fill;if(opts.border!==false)cell.border=BRD;};
   var MR=function(r,c1,c2){ws.mergeCells(r,c1,r,c2);};
   var RH=function(r,h){ws.getRow(r).height=h;};
   var vf=function(v,grey){return isPend(v)?fills.yell:(grey?fills.grey:null);};
-  function secHdr(row,text,fill){W(2,row,text,{fill,bold:true,sz:12,h:'center'});ws.mergeCells(row,2,row+1,9);RH(row,17);RH(row+1,17);}
-  function DR(row,l1,v1,l2,v2,fill,l1r,l2r,v1g,v2g){W(2,row,l1,{fill,bold:true,color:l1r?'FF0000':null});MR(row,2,3);W(4,row,v1,{fill:vf(v1,v1g)});MR(row,4,5);if(l2!==undefined){W(6,row,l2,{fill,bold:true,color:l2r?'FF0000':null});MR(row,6,7);W(8,row,v2,{fill:vf(v2,v2g)});MR(row,8,9);}RH(row,17);}
+  var secHdr=function(row,text,fill){W(2,row,text,{fill:fill,bold:true,sz:12,h:'center'});ws.mergeCells(row,2,row+1,9);RH(row,17);RH(row+1,17);};
+  var DR=function(row,l1,v1,l2,v2,fill,l1r,l2r,v1g,v2g){W(2,row,l1,{fill:fill,bold:true,color:l1r?'FF0000':null});MR(row,2,3);W(4,row,v1,{fill:vf(v1,v1g)});MR(row,4,5);if(l2!==undefined){W(6,row,l2,{fill:fill,bold:true,color:l2r?'FF0000':null});MR(row,6,7);W(8,row,v2,{fill:vf(v2,v2g)});MR(row,8,9);}RH(row,17);};
   W(4,3,'HOJA DE FORMATO - FC1',{bold:true,color:'156082',sz:18,h:'left',border:false});ws.mergeCells(3,4,3,9);RH(3,40);RH(4,5);
   W(4,5,'REFERENCIA JDe: ',{bold:true,color:'7F7F7F',border:false});W(5,5,ref,{h:'center',border:false});MR(5,5,6);W(7,5,'VERSION/FECHA: ',{bold:true,color:'7F7F7F',border:false});W(8,5,version,{border:false});MR(5,8,9);
   W(4,6,'DESCRIPCION: ',{bold:true,color:'7F7F7F',border:false});W(5,6,desc,{border:false});MR(6,5,9);RH(5,17);RH(6,17);RH(7,5);
@@ -1722,7 +1722,7 @@ async function downloadExcelAV2() {
     yell:{type:'pattern',pattern:'solid',fgColor:{argb:'FFFFFF00'}}
   };
 
-  function W(col,row,value,opts){
+  var W=function(col,row,value,opts){
     opts=opts||{};
     var cell=ws.getCell(row,col);
     cell.value=(value===''||value===null||value===undefined)?'':value;
@@ -2848,7 +2848,7 @@ function renderProductGenerico(p, contentId, maquina) {
     else v = '<span class="field-value">' + s + '</span>';
     return '<div class="field"><span class="field-label' + (isCrit?' critical':'') + '">' + label + '</span>' + v + '</div>';
   }
-  function sec(title, cls, content) {
+  var sec=function(title, cls, content) {
     return '<div class="section ' + cls + '"><div class="section-header"><span class="section-title ' + cls + '">' + title + '</span></div><div class="grid-2">' + content + '</div></div>';
   }
 
@@ -2907,71 +2907,226 @@ function renderProductGenerico(p, contentId, maquina) {
   });
 
   document.getElementById(contentId).innerHTML = html;
+  renderModificacionesGenerico(String(p['PT/PR/PV']||''), contentId).catch(console.error);
+}
+
+async function renderModificacionesGenerico(ref, contentId) {
+  var today = new Date().toLocaleDateString('es-ES');
+  var uid = ref.replace(/[^a-zA-Z0-9]/g,'_') + '_' + contentId;
+  var section = document.createElement('div');
+  section.className = 'mod-section';
+  section.id = 'mod-section-' + uid;
+  section.innerHTML = '<div class="mod-header"><span class="mod-title">CONTROL DE MODIFICACIONES</span><span class="mod-count" id="mod-count-'+uid+'">...</span></div>'
+    + '<div class="mod-form">'
+    + '<div><label>Fecha</label><input type="text" id="mod-fecha-'+uid+'" value="'+today+'"></div>'
+    + '<div><label>Nombre / Responsable</label><input type="text" id="mod-nombre-'+uid+'" placeholder="Nombre..."></div>'
+    + '<div><label>OT</label><input type="text" id="mod-ot-'+uid+'" placeholder="N OT..."></div>'
+    + '<div><label>Descripcion del cambio</label><textarea id="mod-desc-'+uid+'" placeholder="Describe el cambio..."></textarea></div>'
+    + '<button class="btn-add-mod" onclick="addModGenerico(this,\''+ref+'\',\''+uid+'\')">Anadir</button>'
+    + '</div>'
+    + '<div id="mod-list-'+uid+'"><div class="mod-empty">Cargando historial...</div></div>';
+  document.getElementById(contentId).appendChild(section);
+  await renderModListGenerico(ref, uid);
+}
+
+async function renderModListGenerico(ref, uid) {
+  var list = document.getElementById('mod-list-'+uid);
+  if (list) list.innerHTML = '<div class="mod-empty">Cargando...</div>';
+  var mods = await getModsForRefCloud(ref);
+  list = document.getElementById('mod-list-'+uid);
+  if (!list) return;
+  var countEl = document.getElementById('mod-count-'+uid);
+  if (countEl) countEl.textContent = mods.length + ' entrada' + (mods.length!==1?'s':'');
+  if (!mods.length) { list.innerHTML = '<div class="mod-empty">Sin modificaciones registradas.</div>'; return; }
+  var sorted = mods.slice().reverse();
+  list.innerHTML = '<table class="mod-table"><thead><tr><th>Fecha</th><th>Responsable</th><th>OT</th><th>Descripcion</th><th></th></tr></thead><tbody>'
+    + sorted.map(function(m){ return '<tr><td class="mod-date">'+m.fecha+'</td><td>'+m.nombre+'</td><td>'+m.ot+'</td><td>'+m.desc+'</td><td><button class="btn-del-mod" data-ref="'+ref+'" data-id="'+m.id+'" data-uid="'+uid+'" onclick="deleteModGenerico(this)">x</button></td></tr>'; }).join('')
+    + '</tbody></table>';
+}
+
+async function addModGenerico(btn, ref, uid) {
+  requireAdmin(async function() {
+    var fecha = document.getElementById('mod-fecha-'+uid).value.trim();
+    var nombre = document.getElementById('mod-nombre-'+uid).value.trim();
+    var ot = document.getElementById('mod-ot-'+uid).value.trim();
+    var desc = document.getElementById('mod-desc-'+uid).value.trim();
+    if (!desc) { document.getElementById('mod-desc-'+uid).focus(); return; }
+    btn.disabled=true; btn.textContent='Guardando...';
+    var id = await addModCloud(ref, fecha||new Date().toLocaleDateString('es-ES'), nombre, ot, desc);
+    btn.disabled=false; btn.textContent='Anadir';
+    if (!id) { alert('Error al guardar.'); return; }
+    document.getElementById('mod-nombre-'+uid).value='';
+    document.getElementById('mod-ot-'+uid).value='';
+    document.getElementById('mod-desc-'+uid).value='';
+    await renderModListGenerico(ref, uid);
+  });
+}
+
+function deleteModGenerico(btn) {
+  showAuthModal(async function(){
+    var ok = await deleteModCloud(btn.dataset.ref, btn.dataset.id);
+    if (ok) await renderModListGenerico(btn.dataset.ref, btn.dataset.uid);
+  });
+}
+
+
+function getCurrentProductGenerico(maquina) {
+  var map = {
+    'T150V': currentProductT150V,
+    'BOX150': currentProductBOX150,
+    'B600': currentProductB600,
+    'PMM': currentProductPMM,
+    'ROPAL': currentProductROPAL,
+    'AV4': currentProductAV4,
+    'T150M': currentProductT150M,
+    'T150MT': currentProductT150MT
+  };
+  return map[maquina] || null;
 }
 
 function abrirNuevaVersionGenerica(maquina) {
-  var p = maquina === 'T150V' ? currentProductT150V : currentProductBOX150;
+  var p = getCurrentProductGenerico(maquina);
   if (!p) return;
-  var ref = String(p['PT/PR/PV']||'');
-  var desc = p['Descripcion PT/PR/PV']||p['Descripción PT/PR/PV']||'';
-  var EXCLUIR = ['PT/PR/PV','Descripcion PT/PR/PV','Descripción PT/PR/PV','VERSION','FECHA DATOS'];
-  var allKeys = Object.keys(p).filter(function(k){ return EXCLUIR.indexOf(k) === -1; });
+  requireAdmin(function() {
+    var ref = String(p['PT/PR/PV']||'');
+    var desc = p['Descripcion PT/PR/PV']||p['Descripción PT/PR/PV']||'';
+    var EXCLUIR = ['PT/PR/PV','Descripcion PT/PR/PV','Descripción PT/PR/PV','VERSION','FECHA DATOS','Columna1','Columna2','Columna3','Columna4','Columna5','Columna6','Columna7','Columna8'];
+    var allKeys = Object.keys(p).filter(function(k){ return EXCLUIR.indexOf(k) === -1 && !k.startsWith('Columna') && k.trim() !== ''; });
 
-  var fieldsHtml = '<div style="column-count:2;column-gap:20px;">';
-  allKeys.forEach(function(k) {
-    var v = p[k]||'';
-    fieldsHtml += '<div style="break-inside:avoid;margin-bottom:10px;">'
-      + '<label style="font-size:11px;color:#9ca3af;text-transform:uppercase;display:block;margin-bottom:3px">' + k + '</label>'
-      + '<input type="text" data-key="' + k.replace(/"/g,"'") + '" value="' + String(v).replace(/"/g,"'") + '" '
-      + 'oninput="this.classList.add(\'changed\')" '
-      + 'style="width:100%;box-sizing:border-box;border:1px solid #d1d5db;border-radius:6px;padding:6px 10px;font-size:13px;outline:none;">'
-      + '</div>';
+    var fieldsHtml = '<div style="column-count:2;column-gap:20px;">';
+    allKeys.forEach(function(k) {
+      var v = p[k]||'';
+      fieldsHtml += '<div style="break-inside:avoid;margin-bottom:10px;">'
+        + '<label style="font-size:11px;color:#9ca3af;text-transform:uppercase;display:block;margin-bottom:3px">' + k + '</label>'
+        + '<input type="text" data-key="' + k.replace(/"/g,"'") + '" value="' + String(v).replace(/"/g,"'") + '" '
+        + 'oninput="this.classList.add(\'changed\')" '
+        + 'style="width:100%;box-sizing:border-box;border:1px solid #d1d5db;border-radius:6px;padding:6px 10px;font-size:13px;outline:none;">'
+        + '</div>';
+    });
+    fieldsHtml += '</div>';
+
+    var overlay = document.getElementById('nv-overlay');
+    document.getElementById('nv-title').textContent = 'Nueva Version - ' + ref + ' ' + desc;
+    document.getElementById('nv-fields').innerHTML = fieldsHtml;
+    document.getElementById('nv-user-email').value = '';
+    document.getElementById('nv-overlay').dataset.maquina = maquina;
+    overlay.style.display = 'flex';
   });
-  fieldsHtml += '</div>';
-
-  var overlay = document.getElementById('nv-overlay');
-  document.getElementById('nv-title').textContent = 'Nueva Version - ' + ref + ' ' + desc;
-  document.getElementById('nv-fields').innerHTML = fieldsHtml;
-  document.getElementById('nv-user-email').value = '';
-  document.getElementById('nv-overlay').dataset.maquina = maquina;
-  overlay.style.display = 'flex';
 }
 
 async function enviarNuevaVersionGenerica() {
   var overlay = document.getElementById('nv-overlay');
   var maquina = overlay.dataset.maquina;
-  var p = maquina === 'T150V' ? currentProductT150V : currentProductBOX150;
+  var p = getCurrentProductGenerico(maquina);
   if (!p) return;
   var ref = String(p['PT/PR/PV']||'');
   var desc = p['Descripcion PT/PR/PV']||p['Descripción PT/PR/PV']||'';
   var operario = document.getElementById('nv-user-email').value.trim();
   if (!operario) { document.getElementById('nv-user-email').focus(); alert('El numero de operario es obligatorio.'); return; }
-  var prep = prepararDatosRevision(p, overlay);
-  var datosCompletos = prep.todos;
 
-  var url = API + '?action=paraRevisar&ref=' + encodeURIComponent(ref)
-    + '&datos=' + encodeURIComponent(JSON.stringify(datosCompletos))
-    + '&userEmail=' + encodeURIComponent(operario)
-    + '&maquina=' + encodeURIComponent(maquina);
-  var r1 = await apiCall(url);
+  // Recoger todos los campos y detectar modificados
+  var datosCompletos = {}, datosModificados = {};
+  overlay.querySelectorAll('input[data-key]').forEach(function(inp) {
+    var k = inp.dataset.key;
+    datosCompletos[k] = inp.value;
+    if (inp.classList.contains('changed')) datosModificados[k] = inp.value;
+  });
 
-  var urlV = API + '?action=nuevaVersion&ref=' + encodeURIComponent(maquina + '_' + ref)
-    + '&desc=' + encodeURIComponent(desc)
-    + '&datos=' + encodeURIComponent(JSON.stringify(prep.modificados))
-    + '&userEmail=' + encodeURIComponent(operario);
-  var r2 = await apiCall(urlV);
-
-  if (r1.ok && r2.ok) {
-    overlay.style.display = 'none';
-    alert('✓ Enviado correctamente');
-  } else {
-    alert('Error: ' + (r1.error||r2.error||'desconocido'));
+  // Enviar en chunks de 30
+  var keys = Object.keys(datosCompletos);
+  var CHUNK = 30;
+  var total = Math.ceil(keys.length / CHUNK);
+  for (var c = 0; c < total; c++) {
+    var chunk = {};
+    keys.slice(c*CHUNK, (c+1)*CHUNK).forEach(function(k){ chunk[k] = datosCompletos[k]; });
+    var url = API + '?action=bufferDatos'
+      + '&ref=' + encodeURIComponent(ref)
+      + '&chunk=' + c
+      + '&total=' + total
+      + '&datos=' + encodeURIComponent(JSON.stringify(chunk))
+      + '&userEmail=' + encodeURIComponent(operario)
+      + '&maquina=' + encodeURIComponent(maquina)
+      + '&desc=' + encodeURIComponent(desc);
+    var r = await apiCall(url);
+    if (!r.ok && !r.pending) { alert('Error: ' + (r.error||'desconocido')); return; }
   }
+
+  overlay.style.display = 'none';
+  alert('✓ Enviado correctamente');
 }
 
-function descargarExcelGenerico(p, maquina) {
+async function descargarExcelGenerico(p, maquina) {
   if (!p) return;
-  alert('Exportación Excel para ' + maquina + ' próximamente');
+  var today = new Date().toLocaleDateString('es-ES');
+  var ref = String(p['PT/PR/PV']||'');
+  var desc = p['Descripcion PT/PR/PV']||p['Descripción PT/PR/PV']||'';
+  var version = p['VERSION'] ? (p['VERSION']+'-'+(p['FECHA DATOS']||today)) : ('1-'+today);
+  var WB = new ExcelJS.Workbook();
+  var ws = WB.addWorksheet('Hoja de formato ' + maquina);
+  ws.columns=[{width:3},{width:28},{width:4},{width:22},{width:4},{width:28},{width:4},{width:22},{width:4}];
+  var THIN={style:'thin',color:{argb:'FFBFBFBF'}};
+  var BRD={top:THIN,bottom:THIN,left:THIN,right:THIN};
+  var fills={oHdr:{type:'pattern',pattern:'solid',fgColor:{argb:'FFF7CAAC'}},oCell:{type:'pattern',pattern:'solid',fgColor:{argb:'FFFBE4D5'}},gHdr:{type:'pattern',pattern:'solid',fgColor:{argb:'FFA8D08D'}},gCell:{type:'pattern',pattern:'solid',fgColor:{argb:'FFE2EFD9'}},bHdr:{type:'pattern',pattern:'solid',fgColor:{argb:'FFB4C7E7'}},bCell:{type:'pattern',pattern:'solid',fgColor:{argb:'FFD9E2F3'}},yell:{type:'pattern',pattern:'solid',fgColor:{argb:'FFFFFF00'}}};
+  var isPend = function(v){ return String(v||'').trim().toLowerCase()==='pendiente'; };
+  var W=function(col,row,value,opts){opts=opts||{};var cell=ws.getCell(row,col);cell.value=(value===''||value===null||value===undefined)?'':value;cell.font={name:'Calibri',size:opts.sz||11,bold:!!opts.bold,color:{argb:opts.color?('FF'+opts.color):'FF000000'}};cell.alignment={horizontal:opts.h||'left',vertical:'middle',wrapText:!!opts.wrap};if(opts.fill)cell.fill=opts.fill;if(opts.border!==false)cell.border=BRD;};
+  var MR=function(r,c1,c2){ws.mergeCells(r,c1,r,c2);};
+  var RH=function(r,h){ws.getRow(r).height=h;};
+  var vf=function(v){return isPend(v)?fills.yell:null;};
+  var secHdr=function(row,text,fill){W(2,row,text,{fill:fill,bold:true,sz:12,h:'center'});ws.mergeCells(row,2,row+1,9);RH(row,17);RH(row+1,17);};
+  var DR=function(row,l1,v1,l2,v2,fill){W(2,row,l1,{fill:fill,bold:true});MR(row,2,3);W(4,row,v1,{fill:vf(v1)});MR(row,4,5);if(l2!==undefined){W(6,row,l2,{fill:fill,bold:true});MR(row,6,7);W(8,row,v2,{fill:vf(v2)});MR(row,8,9);}RH(row,17);};
+
+  // Header
+  W(4,3,'HOJA DE FORMATO - '+maquina,{bold:true,color:'156082',sz:18,h:'left',border:false});ws.mergeCells(3,4,3,9);RH(3,40);RH(4,5);
+  W(4,5,'REFERENCIA JDE: ',{bold:true,color:'7F7F7F',border:false});W(5,5,ref,{h:'center',border:false});MR(5,5,6);W(7,5,'VERSION/FECHA: ',{bold:true,color:'7F7F7F',border:false});W(8,5,version,{border:false});MR(5,8,9);
+  W(4,6,'DESCRIPCION: ',{bold:true,color:'7F7F7F',border:false});W(5,6,desc,{border:false});MR(6,5,9);RH(5,17);RH(6,17);RH(7,5);
+
+  // Renderizar secciones dinámicamente
+  var SKIP = ['PT/PR/PV','Descripcion PT/PR/PV','Descripción PT/PR/PV','VERSION','FECHA DATOS','Formato','Diámetro 1º','Altura 1º (Longitud)','Longitud Total (con tapón)','Tapón 1º','MATERIAL TUBO'];
+  var SECCIONES_XL = {
+    'FORMATO TUBO': {name:'FORMATO', fill:'oHdr', cellFill:'oCell'},
+    'DESCRIPCION RECETA': {name:'RECETA HMI', fill:'gHdr', cellFill:'gCell'},
+    'RETARDO ORIENTADOR 1': {name:'ORIENTADOR', fill:'gHdr', cellFill:'gCell'},
+    'TEMPERATURA IMPUESTA 1': {name:'AIRE CALIENTE', fill:'oHdr', cellFill:'oCell'},
+    'STOP MÁQUINA': {name:'FASES', fill:'gHdr', cellFill:'gCell'},
+    'AJUSTE INYECTOR': {name:'VOLANTES', fill:'bHdr', cellFill:'bCell'},
+    'ALTURA DEL PLATO (BASE-ZONA SUP PLATO)': {name:'ALTURAS', fill:'bHdr', cellFill:'bCell'},
+    '2- PRESIÓN AIRE MÁQUINA': {name:'MANOMETROS', fill:'gHdr', cellFill:'gCell'},
+  };
+  var campos = Object.keys(p).filter(function(k){ return SKIP.indexOf(k)===-1 && !k.startsWith('Columna') && k.trim()!==''; });
+  var secciones = [{name:'DATOS', fill:'oHdr', cellFill:'oCell', campos:[]}];
+  var secActual = secciones[0];
+  campos.forEach(function(k){
+    if (SECCIONES_XL[k]) { secActual = Object.assign({}, SECCIONES_XL[k], {campos:[]}); secciones.push(secActual); }
+    secActual.campos.push(k);
+  });
+
+  var row = 8;
+  secciones.forEach(function(s) {
+    if (!s.campos.length) return;
+    secHdr(row, s.name, fills[s.fill]); row += 2;
+    for (var i = 0; i < s.campos.length; i += 2) {
+      var k1 = s.campos[i], k2 = s.campos[i+1];
+      DR(row, k1, p[k1]||'', k2, k2 ? (p[k2]||'') : undefined, fills[s.cellFill]);
+      row++;
+    }
+    RH(row, 5); row++;
+  });
+
+  // Control de modificaciones
+  W(4,row+1,'CONTROL DE MODIFICACIONES - '+maquina,{bold:true,color:'156082',sz:18,h:'left',border:false});ws.mergeCells(row+1,4,row+1,9);RH(row+1,40);RH(row+2,5);
+  W(4,row+3,'REFERENCIA JDE: ',{bold:true,color:'7F7F7F',border:false});W(5,row+3,ref,{h:'center',border:false});MR(row+3,5,6);
+  ['FECHA','NOMBRE MTTO.','OT / WO','REFERENCIA','DESCRIPCION CAMBIO'].forEach(function(h,i){var c=i+2;W(c,row+4,h,{fill:fills.gCell,bold:true,sz:11,h:'center'});if(c===6)ws.mergeCells(row+4,6,row+4,9);});RH(row+4,17);
+  var mods = await getModsForRefCloud(ref);
+  var modCount = Math.max(mods.length, 15);
+  for (var i=0;i<modCount;i++){var r=row+5+i;var m=mods[i]||{};W(2,r,m.fecha||'',{h:'center'});W(3,r,m.nombre||'',{});W(4,r,m.ot||'',{h:'center'});W(5,r,'',{});W(6,r,m.desc||'',{wrap:true});ws.mergeCells(r,6,r,9);RH(r,17);}
+
+  ws.pageSetup.paperSize=9;ws.pageSetup.orientation='portrait';ws.pageSetup.scale=175;
+  WB.xlsx.writeBuffer().then(function(buffer){
+    var blob=new Blob([buffer],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    var url=URL.createObjectURL(blob);var a=document.createElement('a');
+    a.href=url;a.download=maquina+'_'+ref+'_'+desc.replace(/[^a-zA-Z0-9]/g,'_').slice(0,30)+'.xlsx';
+    a.click();URL.revokeObjectURL(url);
+  });
 }
 
 
