@@ -2987,31 +2987,36 @@ function getCurrentProductGenerico(maquina) {
 function abrirNuevaVersionGenerica(maquina) {
   var p = getCurrentProductGenerico(maquina);
   if (!p) return;
-  requireAdmin(function() {
-    var ref = String(p['PT/PR/PV']||'');
-    var desc = p['Descripcion PT/PR/PV']||p['Descripción PT/PR/PV']||'';
-    var EXCLUIR = ['PT/PR/PV','Descripcion PT/PR/PV','Descripción PT/PR/PV','VERSION','FECHA DATOS','Columna1','Columna2','Columna3','Columna4','Columna5','Columna6','Columna7','Columna8'];
-    var allKeys = Object.keys(p).filter(function(k){ return EXCLUIR.indexOf(k) === -1 && !k.startsWith('Columna') && k.trim() !== ''; });
+  var ref = String(p['PT/PR/PV']||'');
+  var desc = p['Descripcion PT/PR/PV']||p['Descripción PT/PR/PV']||'';
+  var EXCLUIR = ['PT/PR/PV','Descripcion PT/PR/PV','Descripción PT/PR/PV','VERSION','FECHA DATOS','Columna1','Columna2','Columna3','Columna4','Columna5','Columna6','Columna7','Columna8'];
+  var allKeys = Object.keys(p).filter(function(k){ return EXCLUIR.indexOf(k) === -1 && !k.startsWith('Columna') && k.trim() !== ''; });
 
-    var fieldsHtml = '<div style="column-count:2;column-gap:20px;">';
-    allKeys.forEach(function(k) {
-      var v = p[k]||'';
-      fieldsHtml += '<div style="break-inside:avoid;margin-bottom:10px;">'
-        + '<label style="font-size:11px;color:#9ca3af;text-transform:uppercase;display:block;margin-bottom:3px">' + k + '</label>'
-        + '<input type="text" data-key="' + k.replace(/"/g,"'") + '" value="' + String(v).replace(/"/g,"'") + '" '
-        + 'oninput="this.classList.add(\'changed\')" '
-        + 'style="width:100%;box-sizing:border-box;border:1px solid #d1d5db;border-radius:6px;padding:6px 10px;font-size:13px;outline:none;">'
-        + '</div>';
-    });
-    fieldsHtml += '</div>';
+  var existing = document.getElementById('nv-overlay');
+  if (existing) existing.remove();
 
-    var overlay = document.getElementById('nv-overlay');
-    document.getElementById('nv-title').textContent = 'Nueva Version - ' + ref + ' ' + desc;
-    document.getElementById('nv-fields').innerHTML = fieldsHtml;
-    document.getElementById('nv-user-email').value = '';
-    document.getElementById('nv-overlay').dataset.maquina = maquina;
-    overlay.style.display = 'flex';
+  var overlay = document.createElement('div');
+  overlay.className = 'nv-overlay'; overlay.id = 'nv-overlay';
+  overlay.dataset.maquina = maquina;
+
+  var fieldsHtml = '<div style="column-count:2;column-gap:20px;">';
+  allKeys.forEach(function(k) {
+    var v = p[k]||'';
+    fieldsHtml += '<div style="break-inside:avoid;margin-bottom:10px;">'
+      + '<label style="font-size:11px;color:#9ca3af;text-transform:uppercase;display:block;margin-bottom:3px">' + k + '</label>'
+      + '<input type="text" data-key="' + k.replace(/"/g,"'") + '" value="' + String(v).replace(/"/g,"'") + '" '
+      + 'oninput="this.classList.add(\'changed\')" '
+      + 'style="width:100%;box-sizing:border-box;border:1px solid #d1d5db;border-radius:6px;padding:6px 10px;font-size:13px;outline:none;">'
+      + '</div>';
   });
+  fieldsHtml += '</div>';
+
+  overlay.innerHTML = '<div class="nv-box">'
+    + '<div class="nv-header"><h3>Nueva Version - '+ref+' '+desc+'</h3><button class="btn-nv-cancel" onclick="document.getElementById(\'nv-overlay\').remove()">X</button></div>'
+    + '<div class="nv-body">' + fieldsHtml + '</div>'
+    + '<div class="nv-footer"><input type="text" class="nv-email" id="nv-user-email" placeholder="Numero de operario *"><button class="btn-nv-cancel" onclick="document.getElementById(\'nv-overlay\').remove()">Cancelar</button><button class="btn-nv-send" onclick="enviarNuevaVersionGenerica()">Enviar para revision</button></div>'
+    + '</div>';
+  document.body.appendChild(overlay);
 }
 
 async function enviarNuevaVersionGenerica() {
