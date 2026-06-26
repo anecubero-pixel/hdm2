@@ -37,10 +37,10 @@ header span { font-size:12px; color:#B5D4F4; }
 .search-panel { padding:28px 24px 16px; max-width:900px; margin:0 auto; }
 .search-label { font-size:11px; letter-spacing:2px; text-transform:uppercase; color:#6b7280; margin-bottom:8px; }
 .dropdown-wrap { position:relative; }
-#searchInput, #searchInputAV2 { width:100%; background:#fff; border:1.5px solid #d1d5db; color:#1a1a2e; font-size:15px; padding:11px 16px; border-radius:8px; outline:none; transition:border-color .2s; }
-#searchInput:focus, #searchInputAV2:focus { border-color:#1d4ed8; }
-#searchInput::placeholder, #searchInputAV2::placeholder { color:#9ca3af; }
-#searchInput:disabled, #searchInputAV2:disabled { background:#f9fafb; color:#9ca3af; }
+#searchInput, #searchInputAV2, #searchInputT150V, #searchInputBOX150, #searchInputB600, #searchInputPMM, #searchInputROPAL, #searchInputAV4, #searchInputT150M, #searchInputT150MT { width:100%; background:#fff; border:1.5px solid #d1d5db; color:#1a1a2e; font-size:15px; padding:11px 16px; border-radius:8px; outline:none; transition:border-color .2s; box-sizing:border-box; }
+#searchInput:focus, #searchInputAV2:focus, #searchInputT150V:focus, #searchInputBOX150:focus, #searchInputB600:focus, #searchInputPMM:focus, #searchInputROPAL:focus, #searchInputAV4:focus, #searchInputT150M:focus, #searchInputT150MT:focus { border-color:#1d4ed8; }
+#searchInput::placeholder, #searchInputAV2::placeholder, #searchInputT150V::placeholder, #searchInputBOX150::placeholder, #searchInputB600::placeholder, #searchInputPMM::placeholder, #searchInputROPAL::placeholder, #searchInputAV4::placeholder, #searchInputT150M::placeholder, #searchInputT150MT::placeholder { color:#9ca3af; }
+#searchInput:disabled, #searchInputAV2:disabled, #searchInputT150V:disabled, #searchInputBOX150:disabled, #searchInputB600:disabled, #searchInputPMM:disabled, #searchInputROPAL:disabled, #searchInputAV4:disabled, #searchInputT150M:disabled, #searchInputT150MT:disabled { background:#f9fafb; color:#9ca3af; }
 #suggestions, #suggestionsAV2, #suggestionsT150V, #suggestionsBOX150, #suggestionsB600, #suggestionsPMM, #suggestionsROPAL, #suggestionsAV4, #suggestionsT150M, #suggestionsT150MT { position:absolute; top:calc(100% + 4px); left:0; right:0; background:#fff; border:1px solid #e0e4ef; border-radius:8px; max-height:300px; overflow-y:auto; z-index:200; display:none; box-shadow:0 8px 24px rgba(0,0,0,.1); }
 #suggestions.open, #suggestionsAV2.open, #suggestionsT150V.open, #suggestionsBOX150.open, #suggestionsB600.open, #suggestionsPMM.open, #suggestionsROPAL.open, #suggestionsAV4.open, #suggestionsT150M.open, #suggestionsT150MT.open { display:block; }
 .sug-item { padding:10px 16px; cursor:pointer; border-bottom:1px solid #f3f4f6; display:flex; align-items:center; gap:12px; transition:background .1s; }
@@ -333,6 +333,14 @@ header span { font-size:12px; color:#B5D4F4; }
           <div style="flex:1;background:#f8f9fc;border-radius:6px;padding:8px;text-align:center;">
             <div style="font-size:18px;font-weight:600;color:#111827" id="t150v-total">-</div>
             <div style="font-size:10px;color:#9ca3af">Total</div>
+          </div>
+          <div style="flex:1;background:#f0fdf4;border-radius:6px;padding:8px;text-align:center;">
+            <div style="font-size:18px;font-weight:600;color:#15803d" id="t150v-ok">-</div>
+            <div style="font-size:10px;color:#16a34a">Completos</div>
+          </div>
+          <div style="flex:1;background:#fffbeb;border-radius:6px;padding:8px;text-align:center;">
+            <div style="font-size:18px;font-weight:600;color:#b45309" id="t150v-pend">-</div>
+            <div style="font-size:10px;color:#d97706">Pendientes</div>
           </div>
         </div>
       </div>
@@ -2651,8 +2659,11 @@ async function loadDBT150V() {
     var arr = Array.isArray(json) ? json : (json && Array.isArray(json.data)) ? json.data : null;
     if (!arr || arr.length === 0) throw new Error('Sin datos T150V');
     DB_T150V = arr; t150vLoaded = true;
+    var ok = DB_T150V.filter(function(p){ return p['VERSION']!==null&&p['VERSION']!==undefined; }).length;
     var el = document.getElementById('t150v-total'); if(el) el.textContent = DB_T150V.length;
-    initSearchGenerico('T150V', DB_T150V, 'searchInputT150V', 'suggestionsT150V', 'contentT150V', function(p){ currentProductT150V=p; document.getElementById('suggestionsT150V').style.display='none'; document.getElementById('searchInputT150V').value=(p['PT/PR/PV']||'')+' - '+(p['Descripcion PT/PR/PV']||p['Descripción PT/PR/PV']||''); renderProductGenerico(p,'contentT150V','T150V'); });
+    var elok = document.getElementById('t150v-ok'); if(elok) elok.textContent = ok;
+    var elpend = document.getElementById('t150v-pend'); if(elpend) elpend.textContent = DB_T150V.length - ok;
+    initSearchGenerico('T150V', DB_T150V, 'searchInputT150V', 'suggestionsT150V', 'contentT150V', function(p){ currentProductT150V=p; var box=document.getElementById('suggestionsT150V'); if(box)box.classList.remove('open'); document.getElementById('searchInputT150V').value=(p['PT/PR/PV']||'')+' - '+(p['Descripcion PT/PR/PV']||p['Descripción PT/PR/PV']||''); renderProductGenerico(p,'contentT150V','T150V'); });
   } catch(e) { document.getElementById('contentT150V').innerHTML = '<div style="color:#dc2626;padding:20px">Error: '+e.message+'</div>'; }
 }
 
@@ -2879,7 +2890,10 @@ function renderProductGenerico(p, contentId, maquina) {
     + '<div class="product-ref">REF JDE: ' + ref + '</div>'
     + '<div class="product-name">' + desc + '</div>'
     + '<div class="product-tags">'
+    + (p['FORMATO TUBO'] ? '<span class="tag">' + p['FORMATO TUBO'] + '</span>' : '')
+    + (p['Formato'] ? '<span class="tag">' + p['Formato'] + '</span>' : '')
     + (ver ? '<span class="tag ver">v' + ver + ' ' + fecha + '</span>' : '')
+    + (!ver ? '<span class="tag warn">Sin datos de maquina</span>' : '')
     + '</div></div>'
     + '<div class="btn-group">'
     + '<button class="btn-dl" onclick="descargarExcelGenerico(currentProduct' + maquina + ', \'' + maquina + '\')">Descargar Excel</button>'
@@ -3110,6 +3124,7 @@ async function enviarCargaMasiva() {
 
 loadDB();
 loadDBAV2();
+loadDBT150V();
 </script>
 </div>
 </div>
