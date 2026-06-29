@@ -2415,6 +2415,15 @@ function loadParamsTable(maq) {
       if (T_EXCLUIR.indexOf(k) === -1 && !k.startsWith('Columna') && k.trim()) DEFAULT_UNITS_T150V[k] = '';
     });
   }
+  // Si T150V no está cargada aún, esperar y reintentar
+  if (maq === 't150v' && DB_T150V.length === 0) {
+    var container = document.getElementById('params-t150v-table');
+    if (container) container.innerHTML = '<div style="color:#9ca3af;font-size:13px;padding:20px">Cargando base de datos T150V...</div>';
+    var check = setInterval(function() {
+      if (DB_T150V.length > 0) { clearInterval(check); loadParamsTable('t150v'); }
+    }, 500);
+    return;
+  }
   if (!userUnitsAV2) userUnitsAV2 = loadUserUnits('av2') || Object.assign({}, DEFAULT_UNITS_AV2);
   if (!userUnitsT150V) userUnitsT150V = loadUserUnits('t150v') || Object.assign({}, DEFAULT_UNITS_T150V);
 
@@ -2712,7 +2721,7 @@ async function loadDBBOX150() {
     if (!arr || arr.length === 0) throw new Error('Sin datos BOX150');
     DB_BOX150 = arr; box150Loaded = true;
     var el = document.getElementById('box150-total'); if(el) el.textContent = DB_BOX150.length;
-    initSearchGenerico('BOX150', DB_BOX150, 'searchInputBOX150', 'suggestionsBOX150', 'contentBOX150', function(p){ currentProductBOX150=p; document.getElementById('suggestionsBOX150').style.display='none'; document.getElementById('searchInputBOX150').value=(p['PT/PR/PV']||'')+' - '+(p['Descripcion PT/PR/PV']||p['Descripción PT/PR/PV']||''); renderProductGenerico(p,'contentBOX150','BOX150'); });
+    initSearchGenerico('BOX150', DB_BOX150, 'searchInputBOX150', 'suggestionsBOX150', 'contentBOX150', function(p){ currentProductBOX150=p; var _bbox150=document.getElementById('suggestionsBOX150');if(_bbox150)_bbox150.classList.remove('open'); document.getElementById('searchInputBOX150').value=(p['PT/PR/PV']||'')+' - '+(p['Descripcion PT/PR/PV']||p['Descripción PT/PR/PV']||''); renderProductGenerico(p,'contentBOX150','BOX150'); });
   } catch(e) { document.getElementById('contentBOX150').innerHTML = '<div style="color:#dc2626;padding:20px">Error: '+e.message+'</div>'; }
 }
 
@@ -2723,7 +2732,7 @@ async function loadDBB600() {
     if (!arr || arr.length === 0) throw new Error('Sin datos B600');
     DB_B600 = arr; b600Loaded = true;
     var el = document.getElementById('b600-total'); if(el) el.textContent = DB_B600.length;
-    initSearchGenerico('B600', DB_B600, 'searchInputB600', 'suggestionsB600', 'contentB600', function(p){ currentProductB600=p; document.getElementById('suggestionsB600').style.display='none'; document.getElementById('searchInputB600').value=(p['PT/PR/PV']||'')+' - '+(p['Descripcion PT/PR/PV']||p['Descripción PT/PR/PV']||''); renderProductGenerico(p,'contentB600','B600'); });
+    initSearchGenerico('B600', DB_B600, 'searchInputB600', 'suggestionsB600', 'contentB600', function(p){ currentProductB600=p; var _bb600=document.getElementById('suggestionsB600');if(_bb600)_bb600.classList.remove('open'); document.getElementById('searchInputB600').value=(p['PT/PR/PV']||'')+' - '+(p['Descripcion PT/PR/PV']||p['Descripción PT/PR/PV']||''); renderProductGenerico(p,'contentB600','B600'); });
   } catch(e) { document.getElementById('contentB600').innerHTML = '<div style="color:#dc2626;padding:20px">Error: '+e.message+'</div>'; }
 }
 
@@ -2734,7 +2743,7 @@ async function loadDBPMM() {
     if (!arr || arr.length === 0) throw new Error('Sin datos PMM');
     DB_PMM = arr; pmmLoaded = true;
     var el = document.getElementById('pmm-total'); if(el) el.textContent = DB_PMM.length;
-    initSearchGenerico('PMM', DB_PMM, 'searchInputPMM', 'suggestionsPMM', 'contentPMM', function(p){ currentProductPMM=p; document.getElementById('suggestionsPMM').style.display='none'; document.getElementById('searchInputPMM').value=(p['PT/PR/PV']||'')+' - '+(p['Descripcion PT/PR/PV']||p['Descripción PT/PR/PV']||''); renderProductGenerico(p,'contentPMM','PMM'); });
+    initSearchGenerico('PMM', DB_PMM, 'searchInputPMM', 'suggestionsPMM', 'contentPMM', function(p){ currentProductPMM=p; var _bpmm=document.getElementById('suggestionsPMM');if(_bpmm)_bpmm.classList.remove('open'); document.getElementById('searchInputPMM').value=(p['PT/PR/PV']||'')+' - '+(p['Descripcion PT/PR/PV']||p['Descripción PT/PR/PV']||''); renderProductGenerico(p,'contentPMM','PMM'); });
   } catch(e) { document.getElementById('contentPMM').innerHTML = '<div style="color:#dc2626;padding:20px">Error: '+e.message+'</div>'; }
 }
 
@@ -2745,7 +2754,7 @@ async function loadDBROPAL() {
     if (!arr || arr.length === 0) throw new Error('Sin datos ROPAL');
     DB_ROPAL = arr; ropalLoaded = true;
     var el = document.getElementById('ropal-total'); if(el) el.textContent = DB_ROPAL.length;
-    initSearchGenerico('ROPAL', DB_ROPAL, 'searchInputROPAL', 'suggestionsROPAL', 'contentROPAL', function(p){ currentProductROPAL=p; document.getElementById('suggestionsROPAL').style.display='none'; document.getElementById('searchInputROPAL').value=(p['PT/PR/PV']||'')+' - '+(p['Descripcion PT/PR/PV']||p['Descripción PT/PR/PV']||''); renderProductGenerico(p,'contentROPAL','ROPAL'); });
+    initSearchGenerico('ROPAL', DB_ROPAL, 'searchInputROPAL', 'suggestionsROPAL', 'contentROPAL', function(p){ currentProductROPAL=p; var _bropal=document.getElementById('suggestionsROPAL');if(_bropal)_bropal.classList.remove('open'); document.getElementById('searchInputROPAL').value=(p['PT/PR/PV']||'')+' - '+(p['Descripcion PT/PR/PV']||p['Descripción PT/PR/PV']||''); renderProductGenerico(p,'contentROPAL','ROPAL'); });
   } catch(e) { document.getElementById('contentROPAL').innerHTML = '<div style="color:#dc2626;padding:20px">Error: '+e.message+'</div>'; }
 }
 
@@ -2756,7 +2765,7 @@ async function loadDBAV4() {
     if (!arr || arr.length === 0) throw new Error('Sin datos AV4');
     DB_AV4 = arr; av4Loaded = true;
     var el = document.getElementById('av4-total'); if(el) el.textContent = DB_AV4.length;
-    initSearchGenerico('AV4', DB_AV4, 'searchInputAV4', 'suggestionsAV4', 'contentAV4', function(p){ currentProductAV4=p; document.getElementById('suggestionsAV4').style.display='none'; document.getElementById('searchInputAV4').value=(p['PT/PR/PV']||'')+' - '+(p['Descripcion PT/PR/PV']||p['Descripción PT/PR/PV']||''); renderProductGenerico(p,'contentAV4','AV4'); });
+    initSearchGenerico('AV4', DB_AV4, 'searchInputAV4', 'suggestionsAV4', 'contentAV4', function(p){ currentProductAV4=p; var _bav4=document.getElementById('suggestionsAV4');if(_bav4)_bav4.classList.remove('open'); document.getElementById('searchInputAV4').value=(p['PT/PR/PV']||'')+' - '+(p['Descripcion PT/PR/PV']||p['Descripción PT/PR/PV']||''); renderProductGenerico(p,'contentAV4','AV4'); });
   } catch(e) { document.getElementById('contentAV4').innerHTML = '<div style="color:#dc2626;padding:20px">Error: '+e.message+'</div>'; }
 }
 
@@ -2768,7 +2777,7 @@ async function loadDBT150M() {
     if (!arr || arr.length === 0) throw new Error('Sin datos T150M');
     DB_T150M = arr; t150mLoaded = true;
     var el = document.getElementById('t150m-total'); if(el) el.textContent = DB_T150M.length;
-    initSearchGenerico('T150M', DB_T150M, 'searchInputT150M', 'suggestionsT150M', 'contentT150M', function(p){ currentProductT150M=p; document.getElementById('suggestionsT150M').style.display='none'; document.getElementById('searchInputT150M').value=(p['PT/PR/PV']||'')+' - '+(p['Descripcion PT/PR/PV']||p['Descripción PT/PR/PV']||''); renderProductGenerico(p,'contentT150M','T150M'); });
+    initSearchGenerico('T150M', DB_T150M, 'searchInputT150M', 'suggestionsT150M', 'contentT150M', function(p){ currentProductT150M=p; var _bt150m=document.getElementById('suggestionsT150M');if(_bt150m)_bt150m.classList.remove('open'); document.getElementById('searchInputT150M').value=(p['PT/PR/PV']||'')+' - '+(p['Descripcion PT/PR/PV']||p['Descripción PT/PR/PV']||''); renderProductGenerico(p,'contentT150M','T150M'); });
   } catch(e) { document.getElementById('contentT150M').innerHTML = '<div style="color:#dc2626;padding:20px">Error: '+e.message+'</div>'; }
 }
 
@@ -2779,7 +2788,7 @@ async function loadDBT150MT() {
     if (!arr || arr.length === 0) throw new Error('Sin datos T150MT');
     DB_T150MT = arr; t150mtLoaded = true;
     var el = document.getElementById('t150mt-total'); if(el) el.textContent = DB_T150MT.length;
-    initSearchGenerico('T150MT', DB_T150MT, 'searchInputT150MT', 'suggestionsT150MT', 'contentT150MT', function(p){ currentProductT150MT=p; document.getElementById('suggestionsT150MT').style.display='none'; document.getElementById('searchInputT150MT').value=(p['PT/PR/PV']||'')+' - '+(p['Descripcion PT/PR/PV']||p['Descripción PT/PR/PV']||''); renderProductGenerico(p,'contentT150MT','T150MT'); });
+    initSearchGenerico('T150MT', DB_T150MT, 'searchInputT150MT', 'suggestionsT150MT', 'contentT150MT', function(p){ currentProductT150MT=p; var _bt150mt=document.getElementById('suggestionsT150MT');if(_bt150mt)_bt150mt.classList.remove('open'); document.getElementById('searchInputT150MT').value=(p['PT/PR/PV']||'')+' - '+(p['Descripcion PT/PR/PV']||p['Descripción PT/PR/PV']||''); renderProductGenerico(p,'contentT150MT','T150MT'); });
   } catch(e) { document.getElementById('contentT150MT').innerHTML = '<div style="color:#dc2626;padding:20px">Error: '+e.message+'</div>'; }
 }
 
@@ -2855,14 +2864,14 @@ function selectSuggestionGenerico(idx) {
 
 function selectProductT150V(p) {
   currentProductT150V = p;
-  document.getElementById('suggestionsT150V').style.display = 'none';
+  var _bt150v=document.getElementById('suggestionsT150V');if(_bt150v)_bt150v.classList.remove('open');
   document.getElementById('searchInputT150V').value = (p['PT/PR/PV']||'') + ' - ' + (p['Descripcion PT/PR/PV']||p['Descripción PT/PR/PV']||'');
   renderProductGenerico(p, 'contentT150V', 'T150V');
 }
 
 function selectProductBOX150(p) {
   currentProductBOX150 = p;
-  document.getElementById('suggestionsBOX150').style.display = 'none';
+  var _bbox150=document.getElementById('suggestionsBOX150');if(_bbox150)_bbox150.classList.remove('open');
   document.getElementById('searchInputBOX150').value = (p['PT/PR/PV']||'') + ' - ' + (p['Descripcion PT/PR/PV']||p['Descripción PT/PR/PV']||'');
   renderProductGenerico(p, 'contentBOX150', 'BOX150');
 }
@@ -2945,7 +2954,7 @@ function renderProductGenerico(p, contentId, maquina) {
   });
 
   document.getElementById(contentId).innerHTML = html;
-  renderModificacionesGenerico(String(p['PT/PR/PV']||''), contentId).catch(console.error);
+  renderModificacionesGenerico(maquina + '_' + String(p['PT/PR/PV']||''), contentId).catch(console.error);
 }
 
 async function renderModificacionesGenerico(ref, contentId) {
@@ -3091,9 +3100,9 @@ async function enviarNuevaVersionGenerica() {
   if (btnCancel) btnCancel.disabled = true;
 
   var datosCompletos = {}, datosModificados = {};
-  var units = maquina === 'fc1' ? (userUnitsFC1||{})
-            : maquina === 'av2' ? (userUnitsAV2||{})
-            : maquina === 't150v' ? (userUnitsT150V||{})
+  var units = maquina.toLowerCase() === 'fc1' ? (userUnitsFC1||{})
+            : maquina.toLowerCase() === 'av2' ? (userUnitsAV2||{})
+            : maquina.toLowerCase() === 't150v' ? (userUnitsT150V||{})
             : {};
   overlay.querySelectorAll('input[data-key]').forEach(function(inp) {
     var k = inp.dataset.key;
@@ -3315,15 +3324,17 @@ async function enviarCargaMasiva() {
   try {
     var maquina = CM_PARSED.maquina, ref = CM_PARSED.ref, desc = CM_PARSED.desc;
     var operario = CM_PARSED.operario, datos = CM_PARSED.datos;
-    // Aplicar unidades a los datos
+    // Aplicar unidades a los datos según la máquina
     var datosConUnidades = {};
-    var maqActiva = (maquina === 'AV2') ? 'av2' : 'fc1';
-    var unitsMap = loadUserUnits(maqActiva) || (maqActiva === 'av2' ? DEFAULT_UNITS_AV2 : DEFAULT_UNITS_FC1);
+    var maqLower = maquina.toLowerCase();
+    var unitsMap = maqLower === 'av2'   ? (userUnitsAV2 || loadUserUnits('av2') || DEFAULT_UNITS_AV2)
+                 : maqLower === 't150v' ? (userUnitsT150V || loadUserUnits('t150v') || DEFAULT_UNITS_T150V)
+                 : (userUnitsFC1 || loadUserUnits('fc1') || DEFAULT_UNITS_FC1);
     Object.keys(datos).forEach(function(k) {
       var v = String(datos[k]||'');
       var isNum = v !== '' && !isNaN(v.replace(',', '.'));
       var unit = (unitsMap && unitsMap[k] !== undefined) ? unitsMap[k] : '';
-      datosConUnidades[k] = (isNum && unit) ? v + ' ' + unit : v;
+      datosConUnidades[k] = (isNum && unit) ? v.trim() + ' ' + unit : v;
     });
 
     var keys = Object.keys(datosConUnidades);
