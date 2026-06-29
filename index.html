@@ -2079,10 +2079,13 @@ async function loadRevisiones() {
   var list = document.getElementById('revisiones-list');
   list.innerHTML = '<div style="color:#9ca3af;font-size:13px">Cargando...</div>';
   try {
+    console.log('[loadRevisiones] Iniciando...');
     var resp = await apiCall(API + '?action=getVersiones');
+    console.log('[loadRevisiones] Respuesta:', Array.isArray(resp), resp ? resp.length : 0);
     revisionesData = Array.isArray(resp) ? resp : [];
     renderRevisiones();
   } catch(e) {
+    console.log('[loadRevisiones] Error:', e.message);
     list.innerHTML = '<div style="color:#dc2626;font-size:13px">Error: ' + e.message + '</div>';
   }
 }
