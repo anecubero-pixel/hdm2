@@ -254,6 +254,7 @@ header span { font-size:12px; color:#B5D4F4; }
   <div class="nav-tab" onclick="switchTab('config')"><i class="ti ti-settings" style="font-size:14px;margin-right:6px" aria-hidden="true"></i>Emails</div>
   <div class="nav-tab" onclick="switchTab('params-fc1')"><i class="ti ti-adjustments" style="font-size:14px;margin-right:6px" aria-hidden="true"></i>Parametros FC1</div>
   <div class="nav-tab" onclick="switchTab('params-av2')"><i class="ti ti-adjustments" style="font-size:14px;margin-right:6px" aria-hidden="true"></i>Parametros AV2</div>
+  <div class="nav-tab" onclick="switchTab('params-t150v')"><i class="ti ti-adjustments" style="font-size:14px;margin-right:6px" aria-hidden="true"></i>Parametros T150V</div>
   <div class="sidebar-section" style="margin-top:16px">Ingenieria</div>
   <div class="nav-tab" onclick="switchTab('planificacion')"><i class="ti ti-calendar" style="font-size:14px;margin-right:6px" aria-hidden="true"></i>Planificacion</div>
   <div class="nav-tab" onclick="switchTab('carga-masiva')"><i class="ti ti-file-upload" style="font-size:14px;margin-right:6px" aria-hidden="true"></i>Carga masiva</div>
@@ -696,6 +697,21 @@ header span { font-size:12px; color:#B5D4F4; }
   </div>
 </div>
 
+<div class="tab-panel" id="tab-params-t150v">
+  <div class="config-panel">
+    <div class="config-section">
+      <div class="config-title">Unidades de campos — T150V</div>
+      <div style="font-size:13px;color:#6b7280;margin-bottom:16px">Edita la unidad que se añade a cada campo al enviar para revision. Deja en blanco si el campo no tiene unidad.</div>
+      <div id="params-t150v-table"></div>
+      <div style="margin-top:16px;display:flex;gap:10px;">
+        <button onclick="saveParams('t150v')" style="background:#1d4ed8;color:#fff;border:none;padding:9px 20px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;">Guardar cambios</button>
+        <button onclick="resetParams('t150v')" style="background:#f3f4f6;color:#374151;border:1px solid #e0e4ef;padding:9px 20px;border-radius:7px;font-size:13px;cursor:pointer;">Restaurar por defecto</button>
+      </div>
+      <div id="params-t150v-msg" style="margin-top:10px;font-size:13px;color:#15803d;display:none">✓ Guardado</div>
+    </div>
+  </div>
+</div>
+
 <div class="tab-panel" id="tab-config">
   <div class="config-panel">
     <div class="config-section">
@@ -874,7 +890,7 @@ function switchTab(tab) {
     if (match) t.classList.toggle('active', match[1]===tab);
   });
   // Update panels
-  ['home','fc1','av2','t150v','config','logs','ayuda','revisiones','modificaciones','params-fc1','params-av2','planificacion','carga-masiva'].forEach(function(id){
+  ['home','fc1','av2','t150v','config','logs','ayuda','revisiones','modificaciones','params-fc1','params-av2','params-t150v','planificacion','carga-masiva'].forEach(function(id){
     var el = document.getElementById('tab-'+id);
     if (el) el.classList.toggle('active', id===tab);
   });
@@ -893,6 +909,7 @@ function switchTab(tab) {
   if (tab==='modificaciones') loadModificaciones();
   if (tab==='params-fc1') checkParamsPassword('fc1');
   if (tab==='params-av2') checkParamsPassword('av2');
+  if (tab==='params-t150v') checkParamsPassword('t150v');
 }
 
 // DB loading
@@ -2380,8 +2397,10 @@ var DEFAULT_UNITS_FC1 = {
 };
 
 var DEFAULT_UNITS_AV2 = {};
+var DEFAULT_UNITS_T150V = {};
 var userUnitsFC1 = loadUserUnits('fc1') || Object.assign({}, DEFAULT_UNITS_FC1);
 var userUnitsAV2 = loadUserUnits('av2') || null;
+var userUnitsT150V = loadUserUnits('t150v') || null;
 
 function loadParamsTable(maq) {
   if (DB_AV2 && DB_AV2.length > 0 && Object.keys(DEFAULT_UNITS_AV2).length === 0) {
@@ -2390,9 +2409,18 @@ function loadParamsTable(maq) {
       if (AV2_EXCLUIR.indexOf(k) === -1) DEFAULT_UNITS_AV2[k] = '';
     });
   }
+  if (DB_T150V && DB_T150V.length > 0 && Object.keys(DEFAULT_UNITS_T150V).length === 0) {
+    var T_EXCLUIR = ['PT/PR/PV','Descripción PT/PR/PV','Descripcion PT/PR/PV','Formato','Diámetro 1º','Altura 1º (Longitud)','Longitud Total (con tapón)','Tapón 1º','MATERIAL TUBO','VERSION','FECHA DATOS','FORMATO TUBO'];
+    Object.keys(DB_T150V[0]).forEach(function(k) {
+      if (T_EXCLUIR.indexOf(k) === -1 && !k.startsWith('Columna') && k.trim()) DEFAULT_UNITS_T150V[k] = '';
+    });
+  }
   if (!userUnitsAV2) userUnitsAV2 = loadUserUnits('av2') || Object.assign({}, DEFAULT_UNITS_AV2);
+  if (!userUnitsT150V) userUnitsT150V = loadUserUnits('t150v') || Object.assign({}, DEFAULT_UNITS_T150V);
 
-  var units = maq === 'fc1' ? userUnitsFC1 : userUnitsAV2;
+  var units = maq === 'av2' ? (userUnitsAV2 || DEFAULT_UNITS_AV2)
+            : maq === 't150v' ? (userUnitsT150V || DEFAULT_UNITS_T150V)
+            : (userUnitsFC1 || DEFAULT_UNITS_FC1);
   var container = document.getElementById('params-' + maq + '-table');
   if (!container) return;
 
@@ -2428,7 +2456,8 @@ function saveParams(maq) {
     });
     saveUserUnits(maq, units);
     if (maq === 'fc1') userUnitsFC1 = units;
-    else userUnitsAV2 = units;
+    else if (maq === 'av2') userUnitsAV2 = units;
+    else if (maq === 't150v') userUnitsT150V = units;
     var msg = document.getElementById('params-' + maq + '-msg');
     if (msg) { msg.style.display = 'block'; setTimeout(function(){ msg.style.display = 'none'; }, 2000); }
   });
@@ -2439,7 +2468,8 @@ function resetParams(maq) {
     if (!confirm('¿Restaurar las unidades por defecto para ' + maq.toUpperCase() + '?')) return;
     localStorage.removeItem('hdm_units_' + maq);
     if (maq === 'fc1') userUnitsFC1 = Object.assign({}, DEFAULT_UNITS_FC1);
-    else userUnitsAV2 = Object.assign({}, DEFAULT_UNITS_AV2);
+    else if (maq === 'av2') userUnitsAV2 = Object.assign({}, DEFAULT_UNITS_AV2);
+    else if (maq === 't150v') userUnitsT150V = Object.assign({}, DEFAULT_UNITS_T150V);
     loadParamsTable(maq);
   });
 }
