@@ -3228,8 +3228,14 @@ function parsearCorreo() {
   }
 
   // Extraer referencia
-  var refMatch = texto.match(/referencia\s*\n([^\n]+)/i);
+  var refMatch = texto.match(/Nueva\s+revision\s+para\s+([^\s\n]+\s*-[^\n]+)/i);
+  if (!refMatch) refMatch = texto.match(/referencia\s*\n([^\n]+)/i);
   if (!refMatch) refMatch = texto.match(/referencia\s+([A-Z0-9_\-]+\s*-[^\n]+)/i);
+  if (!refMatch) {
+    // Intentar detectar directamente el patrón MAQUINA_REF
+    var directMatch = texto.match(/\b(T150V|T150M|T150MT|BOX150|B600|PMM|ROPAL|AV4|AV2|FC1)_([^\s\n]+)\s*-\s*([^\n]+)/i);
+    if (directMatch) refMatch = [null, directMatch[1]+'_'+directMatch[2]+' - '+directMatch[3]];
+  }
   if (!refMatch) {
     preview.innerHTML = '<div style="color:#dc2626;padding:12px">No se detectó la referencia. Pega el texto completo del correo.</div>';
     btnWrap.style.display = 'none';
@@ -3237,7 +3243,7 @@ function parsearCorreo() {
   }
 
   var refLinea = refMatch[1].trim();
-  var maqMatch = refLinea.match(/^(AV2|FC1)_(\d+)\s*-\s*(.+)$/i);
+  var maqMatch = refLinea.match(/^(T150V|T150M|T150MT|BOX150|B600|PMM|ROPAL|AV4|AV2|FC1)_([^\s]+)\s*-\s*(.+)$/i);
   var maquina, ref, desc;
   if (maqMatch) {
     maquina = maqMatch[1].toUpperCase();
@@ -3247,7 +3253,9 @@ function parsearCorreo() {
     var partes = refLinea.split(' - ');
     ref = partes[0].trim();
     desc = partes.slice(1).join(' - ').trim();
-    maquina = texto.toLowerCase().includes('av2') ? 'AV2' : 'FC1';
+    // Detectar máquina por prefijo en el texto
+    var maqDetect = texto.match(/\b(T150V|T150M|T150MT|BOX150|B600|PMM|ROPAL|AV4|AV2|FC1)_/i);
+    maquina = maqDetect ? maqDetect[1].toUpperCase() : 'FC1';
   }
 
   var opMatch = texto.match(/Operario:\s*([^\n]+)/i);
