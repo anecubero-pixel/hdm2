@@ -221,7 +221,7 @@ header span { font-size:12px; color:#B5D4F4; }
   <rect x="6" y="16.5" width="10" height="3" rx="1" fill="currentColor" opacity="0.5"/>
   <line x1="6" y1="18" x2="16" y2="18" stroke="white" stroke-width="0.8" opacity="0.4"/>
 </svg>T150V</div>
-  <!-- <div class="nav-tab" onclick="switchTab('box150')"><i class="ti ti-package" style="font-size:14px;margin-right:6px" aria-hidden="true"></i>BOX150</div> -->
+  <div class="nav-tab" onclick="switchTab('box150')"><i class="ti ti-package" style="font-size:14px;margin-right:6px" aria-hidden="true"></i>BOX150</div>
   <!-- <div class="nav-tab" onclick="switchTab('b600')"><svg width="14" height="14" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right:6px;flex-shrink:0">
   <rect x="9" y="1" width="4" height="2.5" rx="1" fill="currentColor" opacity="0.5"/>
   <rect x="9.5" y="3.5" width="3" height="2" fill="currentColor" opacity="0.6"/>
@@ -362,6 +362,14 @@ header span { font-size:12px; color:#B5D4F4; }
           <div style="flex:1;background:#f8f9fc;border-radius:6px;padding:8px;text-align:center;">
             <div style="font-size:18px;font-weight:600;color:#111827" id="box150-total">-</div>
             <div style="font-size:10px;color:#9ca3af">Total</div>
+          </div>
+          <div style="flex:1;background:#f0fdf4;border-radius:6px;padding:8px;text-align:center;">
+            <div style="font-size:18px;font-weight:600;color:#15803d" id="box150-ok">-</div>
+            <div style="font-size:10px;color:#16a34a">Completos</div>
+          </div>
+          <div style="flex:1;background:#fffbeb;border-radius:6px;padding:8px;text-align:center;">
+            <div style="font-size:18px;font-weight:600;color:#b45309" id="box150-pend">-</div>
+            <div style="font-size:10px;color:#d97706">Pendientes</div>
           </div>
         </div>
       </div>
@@ -763,7 +771,20 @@ header span { font-size:12px; color:#B5D4F4; }
   </div>
 </div>
 
-<!-- TAB-BOX150 COMENTADO -->
+
+<div class="tab-panel" id="tab-box150">
+  <div class="search-panel">
+    <div class="search-label">Buscar producto BOX150</div>
+    <div class="dropdown-wrap">
+      <input type="text" id="searchInputBOX150" placeholder="Cargando base de datos BOX150..." autocomplete="off" disabled>
+      <div id="suggestionsBOX150"></div>
+    </div>
+  </div>
+  <div id="contentBOX150" style="max-width:900px;margin:0 auto;padding:0 24px 60px;">
+    <div class="spinner-wrap"><div class="spinner"></div><span class="spinner-txt">Cargando base de datos BOX150...</span></div>
+  </div>
+</div>
+
 
 <!-- TAB-B600 COMENTADO -->
 
@@ -890,7 +911,7 @@ function switchTab(tab) {
     if (match) t.classList.toggle('active', match[1]===tab);
   });
   // Update panels
-  ['home','fc1','av2','t150v','config','logs','ayuda','revisiones','modificaciones','params-fc1','params-av2','params-t150v','planificacion','carga-masiva'].forEach(function(id){
+  ['home','fc1','av2','t150v','box150','config','logs','ayuda','revisiones','modificaciones','params-fc1','params-av2','params-t150v','planificacion','carga-masiva'].forEach(function(id){
     var el = document.getElementById('tab-'+id);
     if (el) el.classList.toggle('active', id===tab);
   });
@@ -898,7 +919,8 @@ function switchTab(tab) {
   if (tab==='logs') loadLogs();
   if (tab==='av2' && !av2Loaded) loadDBAV2();
   if (tab==='t150v' && !t150vLoaded) loadDBT150V();
-  //  if (tab==='box150' && !box150Loaded) loadDBBOX150();
+  if (tab==='box150' && !box150Loaded) loadDBBOX150();
+  //  if (tab==='b600' && !b600Loaded) loadDBB600();
   //  if (tab==='b600' && !b600Loaded) loadDBB600();
   //  if (tab==='pmm' && !pmmLoaded) loadDBPMM();
   //  if (tab==='ropal' && !ropalLoaded) loadDBROPAL();
@@ -2489,6 +2511,8 @@ function formatWithUnit(key, s) {
   var maq = (document.getElementById('tab-av2') && document.getElementById('tab-av2').classList.contains('active')) ? 'av2' : 'fc1';
   var units = maq === 'av2' ? (userUnitsAV2 || DEFAULT_UNITS_AV2) : (userUnitsFC1 || DEFAULT_UNITS_FC1);
   var unit = (units && units[key] !== undefined) ? units[key] : '';
+  // No duplicar si ya termina con la unidad
+  if (unit && String(s).trim().endsWith(unit)) return s;
   return unit ? s + ' ' + unit : s;
 }
 
@@ -2710,6 +2734,15 @@ async function loadDBT150V() {
     var el = document.getElementById('t150v-total'); if(el) el.textContent = DB_T150V.length;
     var elok = document.getElementById('t150v-ok'); if(elok) elok.textContent = ok;
     var elpend = document.getElementById('t150v-pend'); if(elpend) elpend.textContent = DB_T150V.length - ok;
+    // Inicializar unidades T150V desde DB si no están ya
+    if (Object.keys(DEFAULT_UNITS_T150V).length === 0) {
+      var T_EXCLUIR = ['PT/PR/PV','Descripción PT/PR/PV','Descripcion PT/PR/PV','Formato','Diámetro 1º','Altura 1º (Longitud)','Longitud Total (con tapón)','Tapón 1º','MATERIAL TUBO','VERSION','FECHA DATOS','FORMATO TUBO'];
+      Object.keys(DB_T150V[0]).forEach(function(k) {
+        if (T_EXCLUIR.indexOf(k) === -1 && !k.startsWith('Columna') && k.trim()) DEFAULT_UNITS_T150V[k] = '';
+      });
+    }
+    // Cargar desde localStorage si existe, o usar DEFAULT
+    if (!userUnitsT150V) userUnitsT150V = loadUserUnits('t150v') || Object.assign({}, DEFAULT_UNITS_T150V);
     initSearchGenerico('T150V', DB_T150V, 'searchInputT150V', 'suggestionsT150V', 'contentT150V', function(p){ currentProductT150V=p; var box=document.getElementById('suggestionsT150V'); if(box)box.classList.remove('open'); document.getElementById('searchInputT150V').value=(p['PT/PR/PV']||'')+' - '+(p['Descripcion PT/PR/PV']||p['Descripción PT/PR/PV']||''); renderProductGenerico(p,'contentT150V','T150V'); });
   } catch(e) { document.getElementById('contentT150V').innerHTML = '<div style="color:#dc2626;padding:20px">Error: '+e.message+'</div>'; }
 }
@@ -2720,9 +2753,12 @@ async function loadDBBOX150() {
     var arr = Array.isArray(json) ? json : (json && Array.isArray(json.data)) ? json.data : null;
     if (!arr || arr.length === 0) throw new Error('Sin datos BOX150');
     DB_BOX150 = arr; box150Loaded = true;
+    var ok = DB_BOX150.filter(function(p){ return p['VERSION']!==null&&p['VERSION']!==undefined; }).length;
     var el = document.getElementById('box150-total'); if(el) el.textContent = DB_BOX150.length;
+    var elok = document.getElementById('box150-ok'); if(elok) elok.textContent = ok;
+    var elpend = document.getElementById('box150-pend'); if(elpend) elpend.textContent = DB_BOX150.length - ok;
     initSearchGenerico('BOX150', DB_BOX150, 'searchInputBOX150', 'suggestionsBOX150', 'contentBOX150', function(p){ currentProductBOX150=p; var _bbox150=document.getElementById('suggestionsBOX150');if(_bbox150)_bbox150.classList.remove('open'); document.getElementById('searchInputBOX150').value=(p['PT/PR/PV']||'')+' - '+(p['Descripcion PT/PR/PV']||p['Descripción PT/PR/PV']||''); renderProductGenerico(p,'contentBOX150','BOX150'); });
-  } catch(e) { document.getElementById('contentBOX150').innerHTML = '<div style="color:#dc2626;padding:20px">Error: '+e.message+'</div>'; }
+  } catch(e) { var el=document.getElementById('contentBOX150'); if(el) el.innerHTML = '<div style="color:#dc2626;padding:20px">Error: '+e.message+'</div>'; }
 }
 
 async function loadDBB600() {
@@ -3106,11 +3142,13 @@ async function enviarNuevaVersionGenerica() {
             : {};
   overlay.querySelectorAll('input[data-key]').forEach(function(inp) {
     var k = inp.dataset.key;
-    var v = inp.value;
-    // Aplicar unidad si el campo tiene una configurada
-    if (units[k] && v && !isNaN(parseFloat(v.replace(',','.')))) {
-      v = v.trim() + ' ' + units[k];
+    var v = inp.value.trim();
+    // Aplicar unidad si tiene configurada, el valor es numerico y no la tiene ya
+    if (units[k] && v && !isNaN(parseFloat(v.replace(',','.'))) && !v.trim().endsWith(units[k])) {
+      v = v + ' ' + units[k];
     }
+    // Si queda vacío, marcar como pendiente
+    if (!v) v = 'pendiente';
     datosCompletos[k] = v;
     if (inp.classList.contains('changed')) datosModificados[k] = v;
   });
@@ -3334,7 +3372,7 @@ async function enviarCargaMasiva() {
       var v = String(datos[k]||'');
       var isNum = v !== '' && !isNaN(v.replace(',', '.'));
       var unit = (unitsMap && unitsMap[k] !== undefined) ? unitsMap[k] : '';
-      datosConUnidades[k] = (isNum && unit) ? v.trim() + ' ' + unit : v;
+      datosConUnidades[k] = (isNum && unit && !v.trim().endsWith(unit)) ? v.trim() + ' ' + unit : v;
     });
 
     var keys = Object.keys(datosConUnidades);
@@ -3379,6 +3417,7 @@ async function enviarCargaMasiva() {
 loadDB();
 loadDBAV2();
 loadDBT150V();
+loadDBBOX150();
 </script>
 </div>
 </div>
