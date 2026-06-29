@@ -3084,19 +3084,34 @@ async function enviarNuevaVersionGenerica() {
   var operario = document.getElementById('nv-user-email').value.trim();
   if (!operario) { document.getElementById('nv-user-email').focus(); alert('El numero de operario es obligatorio.'); return; }
 
-  // Recoger todos los campos y detectar modificados
+  // Deshabilitar botón y mostrar progreso
+  var btn = overlay.querySelector('.btn-nv-send');
+  var btnCancel = overlay.querySelector('.btn-nv-cancel');
+  if (btn) { btn.disabled = true; btn.textContent = 'Enviando...'; }
+  if (btnCancel) btnCancel.disabled = true;
+
   var datosCompletos = {}, datosModificados = {};
+  var units = maquina === 'fc1' ? (userUnitsFC1||{})
+            : maquina === 'av2' ? (userUnitsAV2||{})
+            : maquina === 't150v' ? (userUnitsT150V||{})
+            : {};
   overlay.querySelectorAll('input[data-key]').forEach(function(inp) {
     var k = inp.dataset.key;
-    datosCompletos[k] = inp.value;
-    if (inp.classList.contains('changed')) datosModificados[k] = inp.value;
+    var v = inp.value;
+    // Aplicar unidad si el campo tiene una configurada
+    if (units[k] && v && !isNaN(parseFloat(v.replace(',','.')))) {
+      v = v.trim() + ' ' + units[k];
+    }
+    datosCompletos[k] = v;
+    if (inp.classList.contains('changed')) datosModificados[k] = v;
   });
 
-  // Enviar en chunks de 30
   var keys = Object.keys(datosCompletos);
   var CHUNK = 30;
   var total = Math.ceil(keys.length / CHUNK);
+
   for (var c = 0; c < total; c++) {
+    if (btn) btn.textContent = 'Enviando ' + (c+1) + '/' + total + '...';
     var chunk = {};
     keys.slice(c*CHUNK, (c+1)*CHUNK).forEach(function(k){ chunk[k] = datosCompletos[k]; });
     var url = API + '?action=bufferDatos'
@@ -3108,10 +3123,15 @@ async function enviarNuevaVersionGenerica() {
       + '&maquina=' + encodeURIComponent(maquina)
       + '&desc=' + encodeURIComponent(desc);
     var r = await apiCall(url);
-    if (!r.ok && !r.pending) { alert('Error: ' + (r.error||'desconocido')); return; }
+    if (!r.ok && !r.pending) {
+      if (btn) { btn.disabled = false; btn.textContent = 'Enviar para revision'; }
+      if (btnCancel) btnCancel.disabled = false;
+      alert('Error: ' + (r.error||'desconocido'));
+      return;
+    }
   }
 
-  overlay.style.display = 'none';
+  overlay.remove();
   alert('✓ Enviado correctamente');
 }
 
