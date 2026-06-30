@@ -3003,7 +3003,7 @@ function renderProductGenerico(p, contentId, maquina) {
     'Nº DE RECETA': {name:'RECETA ROBOT BOX150', cls:'hmi'},
     'VELOCIDAD CINTA VERDE ROBOT': {name:'FORMATO BOX150', cls:'fmt'},
     'STOP MÁQUINA': {name:'FASES BOX150', cls:'hmi'},
-    'VARILLA 1 (LADO FIJO)': {name:'ETIQUETADORA', cls:'hmi'},
+    'ANCHO DE GUÍAS': {name:'ETIQUETADORA', cls:'hmi'},
     'VELOCIDAD ENCAJADORA': {name:'ENCAJADORA', cls:'fmt'},
     'FASE PARO': {name:'FASES ENCAJADORA', cls:'hmi'},
     // AV2 - estuchadoras
@@ -3142,7 +3142,7 @@ function abrirNuevaVersionGenerica(maquina) {
     'Nº DE RECETA': 'RECETA ROBOT BOX150',
     'VELOCIDAD CINTA VERDE ROBOT': 'FORMATO BOX150',
     'STOP MÁQUINA': 'FASES BOX150',
-    'VARILLA 1 (LADO FIJO)': 'ETIQUETADORA',
+    'ANCHO DE GUÍAS': 'ETIQUETADORA',
     'VELOCIDAD ENCAJADORA': 'ENCAJADORA',
     'FASE PARO': 'FASES ENCAJADORA',
   };
@@ -3482,8 +3482,7 @@ async function enviarCargaMasiva() {
 
 loadDB();
 loadDBAV2();
-loadDBT150V();
-loadDBBOX150();
+setTimeout(function(){ loadDBT150V(); loadDBBOX150(); }, 50);
 </script>
 </div>
 </div>
