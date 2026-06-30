@@ -2987,14 +2987,25 @@ function renderProductGenerico(p, contentId, maquina) {
 
   // Detectar separadores de sección
   var SECCIONES = {
+    // T150V - tubos
     'FORMATO TUBO': {name:'FORMATO', cls:'fmt'},
+    'DIMENSIONES TUBO': {name:'FORMATO', cls:'fmt'},
     'DESCRIPCION RECETA': {name:'RECETA HMI', cls:'hmi'},
+    'VELOCIDAD ROMPEPUENTE': {name:'CARGADOR', cls:'hmi'},
     'RETARDO ORIENTADOR 1': {name:'ORIENTADOR', cls:'hmi'},
     'TEMPERATURA IMPUESTA 1': {name:'AIRE CALIENTE', cls:'fmt'},
+    'TEMPERATURA IMPUESTA 1-2': {name:'AIRE CALIENTE', cls:'fmt'},
     'STOP MÁQUINA': {name:'FASES', cls:'hmi'},
     'AJUSTE INYECTOR': {name:'VOLANTES', cls:'alt'},
     'ALTURA DEL PLATO (BASE-ZONA SUP PLATO)': {name:'ALTURAS', cls:'alt'},
     '2- PRESIÓN AIRE MÁQUINA': {name:'MANOMETROS', cls:'man'},
+    // BOX150 - estuchadoras
+    'Nº DE RECETA': {name:'RECETA ROBOT BOX150', cls:'hmi'},
+    'VELOCIDAD CINTA VERDE ROBOT': {name:'FORMATO BOX150', cls:'fmt'},
+    'ANCHO DE GUÍAS': {name:'ETIQUETADORA', cls:'hmi'},
+    'VELOCIDAD ENCAJADORA': {name:'ENCAJADORA', cls:'fmt'},
+    'FASE PARO': {name:'FASES ENCAJADORA', cls:'hmi'},
+    // AV2 - estuchadoras
     'CADUCIDAD ESTUCHE': {name:'FORMATO', cls:'fmt'},
     'ALTURA MÁQUINA': {name:'ALTURAS', cls:'alt'},
     'PRESION AIRE MÁQUINA': {name:'MANOMETROS', cls:'man'},
@@ -3116,18 +3127,27 @@ function abrirNuevaVersionGenerica(maquina) {
   var ref = String(p['PT/PR/PV']||'');
   var desc = p['Descripcion PT/PR/PV']||p['Descripción PT/PR/PV']||'';
 
-  var EXCLUIR = ['PT/PR/PV','Descripcion PT/PR/PV','Descripción PT/PR/PV','VERSION','FECHA DATOS','Columna1','Columna2','Columna3','Columna4','Columna5','Columna6','Columna7','Columna8'];
+  var EXCLUIR = ['PT/PR/PV','Descripcion PT/PR/PV','Descripción PT/PR/PV','VERSION','FECHA DATOS',
+    'Columna1','Columna2','Columna3','Columna4','Columna5','Columna6','Columna7','Columna8',
+    'Formato','Diámetro 1º','Altura 1º (Longitud)','Longitud Total (con tapón)','Tapón 1º','MATERIAL TUBO','FORMATO TUBO'];
   var SECCIONES_NV = {
     'FORMATO TUBO': 'FORMATO', 'DESCRIPCION RECETA': 'RECETA HMI',
     'RETARDO ORIENTADOR 1': 'ORIENTADOR', 'TEMPERATURA IMPUESTA 1': 'AIRE CALIENTE',
     'STOP MÁQUINA': 'FASES', 'AJUSTE INYECTOR': 'VOLANTES',
     'ALTURA DEL PLATO (BASE-ZONA SUP PLATO)': 'ALTURAS', '2- PRESIÓN AIRE MÁQUINA': 'MANOMETROS',
     'CADUCIDAD ESTUCHE': 'FORMATO', 'ALTURA MÁQUINA': 'ALTURAS',
-    'PRESION AIRE MÁQUINA': 'MANOMETROS', 'PRESION AIRE MÁQUINA (BAR)': 'MANOMETROS'
+    'PRESION AIRE MÁQUINA': 'MANOMETROS', 'PRESION AIRE MÁQUINA (BAR)': 'MANOMETROS',
+    'DIMENSIONES TUBO': 'FORMATO',
+    'Nº DE RECETA': 'RECETA ROBOT BOX150',
+    'VELOCIDAD CINTA VERDE ROBOT': 'FORMATO BOX150',
+    'STOP MÁQUINA': 'FASES BOX150',
+    'ANCHO DE GUÍAS': 'ETIQUETADORA',
+    'VELOCIDAD ENCAJADORA': 'ENCAJADORA',
+    'FASE PARO': 'FASES ENCAJADORA',
   };
 
   var allKeys = Object.keys(p).filter(function(k){
-    return EXCLUIR.indexOf(k) === -1 && !k.startsWith('Columna') && k.trim() !== '';
+    return EXCLUIR.indexOf(k) === -1 && !k.startsWith('Columna') && k.trim() !== '' && k !== 'undefined';
   });
 
   // Agrupar en secciones
