@@ -222,13 +222,13 @@ header span { font-size:12px; color:#B5D4F4; }
   <line x1="6" y1="18" x2="16" y2="18" stroke="white" stroke-width="0.8" opacity="0.4"/>
 </svg>T150V</div>
   <div class="nav-tab" onclick="switchTab('box150')"><i class="ti ti-package" style="font-size:14px;margin-right:6px" aria-hidden="true"></i>BOX150</div>
-  <!-- <div class="nav-tab" onclick="switchTab('b600')"><svg width="14" height="14" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right:6px;flex-shrink:0">
+  <div class="nav-tab" onclick="switchTab('b600')"><svg width="14" height="14" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right:6px;flex-shrink:0">
   <rect x="9" y="1" width="4" height="2.5" rx="1" fill="currentColor" opacity="0.5"/>
   <rect x="9.5" y="3.5" width="3" height="2" fill="currentColor" opacity="0.6"/>
   <rect x="6" y="5.5" width="10" height="11" rx="2" fill="currentColor" opacity="0.9"/>
   <rect x="6" y="16.5" width="10" height="3" rx="1" fill="currentColor" opacity="0.5"/>
   <line x1="6" y1="18" x2="16" y2="18" stroke="white" stroke-width="0.8" opacity="0.4"/>
-</svg>B600</div> -->
+</svg>B600</div>
   <!-- <div class="nav-tab" onclick="switchTab('pmm')"><i class="ti ti-package" style="font-size:14px;margin-right:6px" aria-hidden="true"></i>PMM</div> -->
   <!-- <div class="nav-tab" onclick="switchTab('ropal')"><svg width="14" height="14" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right:6px;flex-shrink:0"><rect x="8" y="1" width="6" height="3" rx="1" fill="currentColor" opacity="0.5"/><path d="M7 4h8l1.5 3v11a2 2 0 01-2 2H7.5a2 2 0 01-2-2V7L7 4z" fill="currentColor"/></svg>ROPAL</div> -->
   <!-- <div class="nav-tab" onclick="switchTab('av4')"><i class="ti ti-package" style="font-size:14px;margin-right:6px" aria-hidden="true"></i>AV4</div> -->
@@ -802,7 +802,18 @@ header span { font-size:12px; color:#B5D4F4; }
 </div>
 
 
-<!-- TAB-B600 COMENTADO -->
+<div class="tab-panel" id="tab-b600">
+  <div class="search-panel">
+    <div class="search-label">Buscar producto B600</div>
+    <div class="dropdown-wrap">
+      <input type="text" id="searchInputB600" placeholder="Cargando base de datos B600..." autocomplete="off" disabled>
+      <div id="suggestionsB600"></div>
+    </div>
+  </div>
+  <div id="contentB600" style="max-width:900px;margin:0 auto;padding:0 24px 60px;">
+    <div class="spinner-wrap"><div class="spinner"></div><span class="spinner-txt">Cargando base de datos B600...</span></div>
+  </div>
+</div>
 
 <!-- TAB-PMM COMENTADO -->
 
@@ -927,7 +938,7 @@ function switchTab(tab) {
     if (match) t.classList.toggle('active', match[1]===tab);
   });
   // Update panels
-  ['home','fc1','av2','t150v','box150','config','logs','ayuda','revisiones','modificaciones','params-fc1','params-av2','params-t150v','params-box150','planificacion','carga-masiva'].forEach(function(id){
+  ['home','fc1','av2','t150v','box150','b600','config','logs','ayuda','revisiones','modificaciones','params-fc1','params-av2','params-t150v','params-box150','planificacion','carga-masiva'].forEach(function(id){
     var el = document.getElementById('tab-'+id);
     if (el) el.classList.toggle('active', id===tab);
   });
@@ -936,8 +947,7 @@ function switchTab(tab) {
   if (tab==='av2' && !av2Loaded) loadDBAV2();
   if (tab==='t150v' && !t150vLoaded) loadDBT150V();
   if (tab==='box150' && !box150Loaded) loadDBBOX150();
-  //  if (tab==='b600' && !b600Loaded) loadDBB600();
-  //  if (tab==='b600' && !b600Loaded) loadDBB600();
+  if (tab==='b600' && !b600Loaded) loadDBB600();
   //  if (tab==='pmm' && !pmmLoaded) loadDBPMM();
   //  if (tab==='ropal' && !ropalLoaded) loadDBROPAL();
   //  if (tab==='av4' && !av4Loaded) loadDBAV4();
